@@ -4,7 +4,7 @@ logger.add("./out.log", format="{time} {level} {message}", level="INFO", rotatio
 
 
 class BaseData:
-    site_signin: str = "https://lesta.ru/id/signin/?next="
+    site_signin: str = "https://lesta.ru/id/signin/process/?type=pow"
     site: str = "https://lesta.ru"
     name_admin_db: str = "postgres"  # Имя админа
     password_db: str = "Vfnhtif1"  # Пароль бд
