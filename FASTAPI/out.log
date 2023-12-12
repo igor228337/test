@@ -1,0 +1,17 @@
+2023-12-12T13:37:30.686282+0300 INFO Все роутера подключены
+2023-12-12T13:39:00.042424+0300 INFO Все роутера подключены
+2023-12-12T13:39:38.671692+0300 INFO Все роутера подключены
+2023-12-12T13:40:12.160625+0300 INFO Все роутера подключены
+2023-12-12T13:40:12.171826+0300 INFO <Response [422 Unprocessable Entity]>
+2023-12-12T13:40:12.172904+0300 INFO {'detail': [{'type': 'missing', 'loc': ['body', 'username'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['body', 'password'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2023-12-12T13:41:01.970512+0300 INFO Все роутера подключены
+2023-12-12T13:41:01.981639+0300 INFO <Response [422 Unprocessable Entity]>
+2023-12-12T13:41:01.981639+0300 INFO {'detail': [{'type': 'missing', 'loc': ['body', 'username'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}, {'type': 'missing', 'loc': ['body', 'password'], 'msg': 'Field required', 'input': None, 'url': 'https://errors.pydantic.dev/2.5/v/missing'}]}
+2023-12-12T13:41:34.702947+0300 INFO Все роутера подключены
+2023-12-12T13:41:34.717893+0300 INFO <Response [422 Unprocessable Entity]>
+2023-12-12T13:41:34.717893+0300 INFO {'detail': [{'type': 'string_pattern_mismatch', 'loc': ['body', 'grant_type'], 'msg': "String should match pattern 'password'", 'input': '123', 'ctx': {'pattern': 'password'}, 'url': 'https://errors.pydantic.dev/2.5/v/string_pattern_mismatch'}]}
+2023-12-12T13:45:09.617110+0300 INFO Все роутера подключены
+2023-12-12T13:46:26.617314+0300 INFO Все роутера подключены
+2023-12-12T13:46:26.930777+0300 INFO Создан токен для пользователя: Ilya
+2023-12-12T13:46:26.932771+0300 INFO <Response [200 OK]>
+2023-12-12T13:46:26.933822+0300 INFO {'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJbHlhIiwiZXhwIjoxNzAyMzc5Nzg2fQ.JmaigPHlvmkogts6W6R5FgiwLOhL-MzO6hgnO2Lb1q4', 'token_type': 'bearer'}
