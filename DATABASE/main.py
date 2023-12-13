@@ -57,30 +57,32 @@ class MethodClass:
             result = None
         return result
 
+    @classmethod
+    async def get_tranc(cls, id_l: int):
+        query = select(cls).where(cls.id == id_l)
+        result = await async_db_session.execute(query)
+        try:
+            (result,) = result.one()
+        except sqlalchemy.exc.NoResultFound:
+            result = None
+        return result
+
 
 class Transaction(Base, MethodClass):
     __tablename__ = 'transaction'
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     login = Column(String, nullable=False)
+    login_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     many = Column(Float, nullable=False)
-    status = Column(Boolean, nullable=False)
-    qiwi_trans: Mapped[list["QIWITransaction"]] = relationship()
+    status = Column(String, nullable=False)
 
-    def __init__(self, login: str = None, many: float = None, status: bool = None):
+    def __init__(self, login: str = None, many: float = None, status: str = None, login_user_id: int = None):
         super().__init__()
         self.login = login
         self.many = many
         self.status = status
-
-
-class QIWITransaction(Base, MethodClass):
-    __tablename__ = "qiwitransaction"
-
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
-    date = Column(DateTime, nullable=False)
-    status = Column(Boolean, nullable=False)
-    trans: Mapped[int] = mapped_column(ForeignKey("transaction.id"), nullable=False)
+        self.login_user_id = login_user_id
 
 
 class User(Base, MethodClass):
@@ -89,16 +91,23 @@ class User(Base, MethodClass):
     login = Column(String)
     password = Column(String)
     disabled = Column(Boolean)
+    cookies = Column(String)
+    cookies_wallet = Column(String)
+    id_trans: Mapped[list["Transaction"]] = relationship()
 
-    def __init__(self, login: str = None, password: str = None, disabled: bool = False):
+    def __init__(self, login: str = None, password: str = None, disabled: bool = False, cookies: str = None,
+                 cookies_wallet: str = None):
         super().__init__()
         self.login = login
         self.password = password
         self.disabled = disabled
+        self.cookies = cookies
+        self.cookies_wallet = cookies_wallet
 
-# async def main():
-#     await async_db_session.init()
-#     await async_db_session.create_all()
-#
-# if __name__ == '__main__':
-#     asyncio.run(main())
+
+async def main():
+    await async_db_session.init()
+    await async_db_session.create_all()
+
+if __name__ == '__main__':
+    asyncio.run(main())

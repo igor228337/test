@@ -3,8 +3,10 @@ from fastapi import Response, APIRouter
 from DATABASE.main import async_db_session
 from FASTAPI.security.token import (Depends, HTTPException, status, UserModel, User, logger, get_current_active_user,
                                     OAuth2PasswordRequestForm, Token, authenticate_user, Messages, timedelta, BaseData,
-                                    create_access_token, TransactionModel, Transaction)
-from FASTAPI.connect_site.main import Connect, HTMLSession
+                                    create_access_token, TransactionModel, Transaction, get_password_hash)
+from FASTAPI.connect_site.main import Connect, HTMLSession, SimpleCookie, cookiejar_from_dict
+
+import re
 
 user = APIRouter(prefix="/users", tags=["users"])
 base = APIRouter(prefix="", tags=["token"])
@@ -32,23 +34,34 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-#  Вот тут, убрал части кода которые идут дальше
 @user.post("/login")
-async def auth_site(user_l: UserModel = Depends()):
+async def auth_site(user_l: UserModel = Depends(), cookies: str = None, cookies_wallet: str = None):
+    user_l_l = await User.get_user(user_l.login)
+    if cookies is None or cookies_wallet is None:
+        if user_l_l is None:
+            return HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=Messages.NO_ACC_NO_COOKIE)
+        elif user_l_l.cookie is None or user_l_l.cookies_wallet:
+            return HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=Messages.HAVE_ACC_NO_COOKIE)
+    elif cookies is not None and user_l_l is None:
+        password_hash = await get_password_hash(user_l.password)
+        await User.create(User(login=user_l.login, password=password_hash, cookies=cookies, disabled=False,
+                               cookies_wallet=cookies_wallet))
+    # if user_l_l.cookies is None or user_l_l.disabled is True:
+    #     return HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=Messages.NO_COOKIES)
     session = HTMLSession()
-    session.headers["User-agent"] = fake_useragent.UserAgent().random
-    print(session.headers)
-    result = Connect.get_site(session, BaseData.site)
-    print(result)
-    print(session.headers)
-    session.headers["Origin"] = BaseData.site
-    data = {"pow": "вот хз откуда и как он берётся", "login": "", "password": "", "rememeber": "true", "captcha": "",
-            "remember": "on", "next": "/id/sso/signin/notify/?next=/"}
-    result = Connect.post_site(session, BaseData.site_signin, data=data)
-    print(result)
-    print(result.text)
-    print(session.headers)
+    my_cookie = SimpleCookie()
+    my_cookie.load(cookies)
+    cookies = {key: morsel.value for key, morsel in my_cookie.items()}
+    session.cookies = cookiejar_from_dict(cookies)
+    session.headers["User-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    result = session.get(BaseData.site)
+    try:
+        names = re.search(r"user_name.+?&", result.text)
+        print(names[0].split("=")[1].split("&")[0])
+    except IndexError:
+        return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=Messages.NO_COOKIES)
 
+    return {status.HTTP_200_OK: "good"}
 
 # @user.get("/me/items/")
 # async def get_items(current_user: UserModel = Depends(get_current_active_user)):

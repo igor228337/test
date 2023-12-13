@@ -4,8 +4,7 @@ logger.add("./out.log", format="{time} {level} {message}", level="INFO", rotatio
 
 
 class BaseData:
-    site_signin: str = "https://lesta.ru/id/signin/process/?type=pow"
-    site: str = "https://lesta.ru"
+    site: str = "https://lesta.ru/personal/?utm_source=global-nav&utm_medium=link&utm_campaign=wgnp"
     name_admin_db: str = "postgres"  # Имя админа
     password_db: str = "Vfnhtif1"  # Пароль бд
     ip_db: str = "localhost"  # IP бд

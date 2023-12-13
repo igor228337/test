@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from BASEFOLDER.base import BaseData, logger
 from DATABASE.main import User, Transaction
-from FASTAPI.security.password_methods import verify_password
+from FASTAPI.security.password_methods import verify_password, get_password_hash
 from Messages import Messages
 from FASTAPI.patternmodel import UserModel, TokenData, Token, TransactionModel
 
