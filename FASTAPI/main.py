@@ -24,7 +24,7 @@ async def get_data(request: TransactionModel = Depends(TransactionModel),
 
 
 @user.post("/pay")
-async def pay_qmany(id_trans: int, current_user: UserModel = Depends(get_current_active_user)):
+async def pay_qmany(id_trans: int, x_request_id: str, current_user: UserModel = Depends(get_current_active_user)):
     user_l_l = await User.get_user(current_user.login)
     trans = await Transaction.get_tranc(id_l=id_trans)
     my_cookie = SimpleCookie()
@@ -62,7 +62,7 @@ async def pay_qmany(id_trans: int, current_user: UserModel = Depends(get_current
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-site',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'x-request-id': 'e1d0d1fa-2072-4f3f-b533-35f6cfa8ee1e',
+        'x-request-id': x_request_id,
     }
 
     response_many = requests.post('https://shop-graphql-ru.lesta.ru/a801b41b2a10890ede2653b33746c93e', headers=headers,
