@@ -37,6 +37,16 @@ async_db_session = AsyncDatabaseSession()
 
 class MethodClass:
     @classmethod
+    async def update(cls, login: str, **kwargs):
+        query = (
+            sqlalchemy.sql.update(cls)
+            .where(cls.login == login)
+            .values(**kwargs)
+            .execution_options(synchronize_session="fetch")
+        )
+        await async_db_session.execute(query)
+        await async_db_session.commit()
+    @classmethod
     async def get_all(cls):
         query = select(cls)
         results = await async_db_session.execute(query)
@@ -48,15 +58,17 @@ class MethodClass:
         await async_db_session.commit()
 
     @classmethod
-    async def get_user(cls, login: str):
+    async def get_user(cls, login: str, all_l: bool = False):
         query = select(cls).where(cls.login == login)
         result = await async_db_session.execute(query)
-        try:
-            (result,) = result.one()
-        except sqlalchemy.exc.NoResultFound:
-            result = None
-        return result
-
+        if not all_l:
+            try:
+                (result,) = result.one()
+            except sqlalchemy.exc.NoResultFound:
+                result = None
+            return result
+        else:
+            return (result.fetchall())
     @classmethod
     async def get_tranc(cls, id_l: int):
         query = select(cls).where(cls.id == id_l)
@@ -66,6 +78,9 @@ class MethodClass:
         except sqlalchemy.exc.NoResultFound:
             result = None
         return result
+
+
+
 
 
 class Transaction(Base, MethodClass):
@@ -83,6 +98,9 @@ class Transaction(Base, MethodClass):
         self.many = many
         self.status = status
         self.login_user_id = login_user_id
+
+    def __repr__(self):
+        return f'{self.id}'
 
 
 class User(Base, MethodClass):

@@ -4,6 +4,8 @@ from FASTAPI.roters.auth import (user, async_db_session, base, logger, Transacti
                                  SimpleCookie, cookiejar_from_dict, Connect)
 import time
 
+from FASTAPI.url_x_request_id import get_url_id
+
 app = FastAPI()
 
 
@@ -19,29 +21,38 @@ async def get_data(request: TransactionModel = Depends(TransactionModel),
     logger.info(f"Создан запрос на транзакцию для пользователя: {user_l.login}")
     await Transaction.create(Transaction(login=request.login, many=request.many, status="Waiting",
                                          login_user_id=user_l.id))
-    trans = await Transaction.get_user(login=request.login)
-    return {status.HTTP_201_CREATED: "Создан", "id_trans": trans.id}
+    trans = await Transaction.get_user(login=request.login, all_l=True)
+    transs = 0
+    for i in trans:
+        transs = i
+
+    return {status.HTTP_201_CREATED: "Создан", "id_trans": str(transs)
+    .replace("(", "").replace(")", "").replace(",", "")}
 
 
 @user.post("/pay")
-async def pay_qmany(id_trans: int, x_request_id: str, current_user: UserModel = Depends(get_current_active_user)):
+async def pay_qmany(id_trans: int, current_user: UserModel = Depends(get_current_active_user)):
     user_l_l = await User.get_user(current_user.login)
     trans = await Transaction.get_tranc(id_l=id_trans)
+    if trans.status != "Waiting":
+        return HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Запрос отклонён")
+
     my_cookie = SimpleCookie()
     my_cookie.load(user_l_l.cookies)
     cookies = {key: morsel.value for key, morsel in my_cookie.items()}
-
+    cookies_d: dict = [{"name": key, "value": morsel.value} for key, morsel in my_cookie.items()]
+    url, x_request_id = await get_url_id(cookies_d)
     json_data = [
-    {
-        'operationName': 'GetProductPrice',
-        'variables': {
-            'titleCode': 'ru.wot',
-            'code': 'ps_p_34',
-            'quantity': int(trans.many),
+        {
+            'operationName': 'GetProductPrice',
+            'variables': {
+                'titleCode': 'ru.wot',
+                'code': 'ps_p_34',
+                'quantity': int(trans.many),
+            },
+            'query': 'query GetProductPrice($title: String, $titleCode: String, $code: String!, $recipient: String, $quantity: Int, $isGift: Boolean, $couponCode: String, $storefront: String) {\n  product_price(\n    title: $title\n    title_code: $titleCode\n    code: $code\n    receiver_wgid: $recipient\n    quantity: $quantity\n    is_gift: $isGift\n    coupon_code: $couponCode\n    storefront: $storefront\n  ) {\n    price {\n      real_price {\n        amount\n        currency_code\n        original_amount\n        discount {\n          amount\n          pct\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    rewards {\n      product {\n        product_id\n        product_code\n        name\n        purchasable\n        price_type\n        client_payment_method_ids\n        categories\n        coupon_codes\n        giftable\n        tags\n        __typename\n      }\n      __typename\n    }\n    client_payment_method_ids\n    coupon_codes\n    __typename\n  }\n}\n',
         },
-        'query': 'query GetProductPrice($title: String, $titleCode: String, $code: String!, $recipient: String, $quantity: Int, $isGift: Boolean, $couponCode: String, $storefront: String) {\n  product_price(\n    title: $title\n    title_code: $titleCode\n    code: $code\n    receiver_wgid: $recipient\n    quantity: $quantity\n    is_gift: $isGift\n    coupon_code: $couponCode\n    storefront: $storefront\n  ) {\n    price {\n      real_price {\n        amount\n        currency_code\n        original_amount\n        discount {\n          amount\n          pct\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    rewards {\n      product {\n        product_id\n        product_code\n        name\n        purchasable\n        price_type\n        client_payment_method_ids\n        categories\n        coupon_codes\n        giftable\n        tags\n        __typename\n      }\n      __typename\n    }\n    client_payment_method_ids\n    coupon_codes\n    __typename\n  }\n}\n',
-    },
-]
+    ]
     import requests
 
     headers = {
@@ -62,10 +73,10 @@ async def pay_qmany(id_trans: int, x_request_id: str, current_user: UserModel = 
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-site',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'x-request-id': x_request_id,
+        'x-request-id': f'{x_request_id}',
     }
 
-    response_many = requests.post('https://shop-graphql-ru.lesta.ru/a801b41b2a10890ede2653b33746c93e', headers=headers,
+    response_many = requests.post(url, headers=headers,
                                   json=json_data)
     try:
         response_many = response_many.json()[0]["data"]["product_price"]["price"]["real_price"]["amount"]
@@ -83,7 +94,7 @@ async def pay_qmany(id_trans: int, x_request_id: str, current_user: UserModel = 
                      '__typename\n  }\n}\n',
         },
     ]
-    response = requests.post('https://shop-graphql-ru.lesta.ru/a801b41b2a10890ede2653b33746c93e', headers=headers,
+    response = requests.post(url, headers=headers,
                              json=json_data)
     a = ""
     try:
@@ -94,7 +105,6 @@ async def pay_qmany(id_trans: int, x_request_id: str, current_user: UserModel = 
         if x["username"] == trans.login:
             a = x["wgid"]
             break
-    print(a)
     json_data = [
         {
             'operationName': 'PurchaseProduct',
@@ -127,13 +137,15 @@ async def pay_qmany(id_trans: int, x_request_id: str, current_user: UserModel = 
                      '}\n}\n',
         },
     ]
-    response = requests.post('https://shop-graphql-ru.lesta.ru/a801b41b2a10890ede2653b33746c93e', headers=headers,
+    response = requests.post(url, headers=headers,
                              json=json_data)
+    logger.info(response.text)
     pay_url = response.json()[0]['data']['purchase_product']['redirect_url']
     pay_form = requests.get(pay_url, allow_redirects=True)
     sk = Connect.get_sk(pay_form.text)
     order_id = Connect.get_client_id(pay_form.url)
     Connect.pay(order_id, sk, cookies=user_l_l.cookies_wallet)
+    await Transaction.update(login=trans.login, status="Close")
     return status.HTTP_202_ACCEPTED
 
 

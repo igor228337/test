@@ -11,7 +11,7 @@ client = TestClient(app)
 
 
 def test_get_token():
-    response = client.post("/token", data={"username": "Ilya", "password": "123", "grant_type": "", "scope": "",
+    response = client.post("/token", data={"username": "gjyxbr12345@yandex.ru", "password": "Djigo123", "grant_type": "", "scope": "",
                                            "client_id": "", "client_secret": ""},
                            headers={"content-type": "application/x-www-form-urlencoded"})
     logger.info(response)

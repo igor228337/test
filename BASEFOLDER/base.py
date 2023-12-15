@@ -3,8 +3,9 @@ from loguru import logger
 logger.add("./out.log", format="{time} {level} {message}", level="INFO", rotation="100 MB", enqueue=True)
 
 
+# нужна бд постргрес
 class BaseData:
-    site: str = "https://lesta.ru/personal/?utm_source=global-nav&utm_medium=link&utm_campaign=wgnp"
+    site: str = "https://lesta.ru/shop/wot/gold/ps_p_34/"
     name_admin_db: str = "postgres"  # Имя админа
     password_db: str = "Vfnhtif1"  # Пароль бд
     ip_db: str = "localhost"  # IP бд

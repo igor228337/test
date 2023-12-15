@@ -15,3 +15,8 @@
 2023-12-12T13:46:26.930777+0300 INFO Создан токен для пользователя: Ilya
 2023-12-12T13:46:26.932771+0300 INFO <Response [200 OK]>
 2023-12-12T13:46:26.933822+0300 INFO {'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJJbHlhIiwiZXhwIjoxNzAyMzc5Nzg2fQ.JmaigPHlvmkogts6W6R5FgiwLOhL-MzO6hgnO2Lb1q4', 'token_type': 'bearer'}
+2023-12-14T11:15:32.256735+0300 INFO Все роутера подключены
+2023-12-14T11:15:32.586663+0300 INFO Создан токен для пользователя: gjyxbr12345@yandex.ru
+2023-12-14T11:15:32.588662+0300 INFO <Response [200 OK]>
+2023-12-14T11:15:32.588662+0300 INFO {'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnanl4YnIxMjM0NUB5YW5kZXgucnUiLCJleHAiOjE3MDI1NDM1MzJ9.eilDLp9sSHw0xMOforWBbM795_URm31Jia0QdDi6QSk', 'token_type': 'bearer'}
+2023-12-14T21:05:43.138924+0300 INFO Все роутера подключены
